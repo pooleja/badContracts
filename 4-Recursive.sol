@@ -1,0 +1,25 @@
+function splitDAO(
+  uint _proposalID,
+  address _newCurator
+) noEther onlyTokenholders returns (bool _success) {
+
+  ...
+  // XXXXX Move ether and assign new Tokens.  Notice how this is done first!
+  uint fundsToBeMoved =
+      (balances[msg.sender] * p.splitData[0].splitBalance) /
+      p.splitData[0].totalSupply;
+  if (p.splitData[0].newDAO.createTokenProxy.value(fundsToBeMoved)(msg.sender) == false) // XXXXX This is the line the attacker wants to run more than once
+      throw;
+
+  ...
+  // Burn DAO Tokens
+  Transfer(msg.sender, 0, balances[msg.sender]);
+  withdrawRewardFor(msg.sender); // be nice, and get his rewards
+  // XXXXX Notice the preceding line is critically before the next few
+  totalSupply -= balances[msg.sender]; // XXXXX AND THIS IS DONE LAST
+  balances[msg.sender] = 0; // XXXXX AND THIS IS DONE LAST TOO
+  paidOut[msg.sender] = 0;
+  return true;
+}
+
+// Recursive send exploit if recieving address has default function to call same action
